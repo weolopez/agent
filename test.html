@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent System Tests</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .test-section {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        
+        .test-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #007acc;
+        }
+        
+        .test-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #0f0f0f;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid #333;
+        }
+        
+        .test-name {
+            font-weight: 500;
+        }
+        
+        .test-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .test-status.pending {
+            background: #333;
+            color: #ccc;
+        }
+        
+        .test-status.running {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .test-status.passed {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .test-status.failed {
+            background: #f44336;
+            color: white;
+        }
+        
+        .test-button {
+            background: #007acc;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 8px;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+        }
+        
+        .test-button:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+        
+        .test-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .test-output {
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #ccc;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-item {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .summary-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #007acc;
+            margin-bottom: 4px;
+        }
+        
+        .summary-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>Agent System Test Suite</h1>
+            <p>Comprehensive testing of the agentic AI system components</p>
+        </div>
+        
+        <div class="summary">
+            <div class="summary-item">
+                <div class="summary-number" id="total-tests">0</div>
+                <div class="summary-label">Total Tests</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="passed-tests">0</div>
+                <div class="summary-label">Passed</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="failed-tests">0</div>
+                <div class="summary-label">Failed</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="test-time">0ms</div>
+                <div class="summary-label">Total Time</div>
+            </div>
+        </div>
+        
+        <div class="test-controls">
+            <button class="test-button" id="run-all">Run All Tests</button>
+            <button class="test-button" id="run-unit">Run Unit Tests</button>
+            <button class="test-button" id="run-integration">Run Integration Tests</button>
+            <button class="test-button" id="clear-results">Clear Results</button>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Unit Tests</div>
+            <div class="test-item">
+                <span class="test-name">Configuration System</span>
+                <span class="test-status pending" data-test="config">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Logger System</span>
+                <span class="test-status pending" data-test="logger">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Cache Manager</span>
+                <span class="test-status pending" data-test="cache">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Memory Store</span>
+                <span class="test-status pending" data-test="memory-store">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Memory Operations</span>
+                <span class="test-status pending" data-test="memory-ops">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Context Manager</span>
+                <span class="test-status pending" data-test="context">Pending</span>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Integration Tests</div>
+            <div class="test-item">
+                <span class="test-name">LLM Interface</span>
+                <span class="test-status pending" data-test="llm">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">OpenRouter Client</span>
+                <span class="test-status pending" data-test="openrouter">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Prompt Engine</span>
+                <span class="test-status pending" data-test="prompts">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Agent Engine</span>
+                <span class="test-status pending" data-test="agent">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Business APIs</span>
+                <span class="test-status pending" data-test="business-apis">Pending</span>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">UI Component Tests</div>
+            <div class="test-item">
+                <span class="test-name">Chat Interface</span>
+                <span class="test-status pending" data-test="chat">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Agent Status</span>
+                <span class="test-status pending" data-test="status">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Memory Viewer</span>
+                <span class="test-status pending" data-test="memory-viewer">Pending</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Execution Flow</span>
+                <span class="test-status pending" data-test="execution-flow">Pending</span>
+            </div>
+        </div>
+        
+        <div class="test-output" id="test-output">
+Test output will appear here...
+        </div>
+    </div>
+
+    <script type="module">
+        import { SystemConfig } from './src/core/config.js';
+        import { Logger } from './src/core/logger.js';
+        import { ErrorHandler } from './src/core/errors.js';
+        import { CacheManager } from './src/core/cache.js';
+        import { MemoryStore } from './src/memory/store.js';
+        import { MemoryOperations } from './src/memory/operations.js';
+        import { ContextManager } from './src/memory/context.js';
+        import { LLMInterface } from './src/llm/interface.js';
+        import { PromptEngine } from './src/llm/prompts.js';
+        import { OpenRouterClient } from './src/llm/openrouter.js';
+        import { AgentEngine } from './src/agent/engine.js';
+        import { BusinessAPITools } from './src/tools/business-apis.js';
+        import './src/ui/components/chat-interface.js';
+        import './src/ui/components/agent-status.js';
+        import './src/ui/components/memory-viewer.js';
+        import './src/ui/components/execution-flow.js';
+
+        class TestRunner {
+            constructor() {
+                this.tests = new Map();
+                this.output = document.getElementById('test-output');
+                this.totalTests = 0;
+                this.passedTests = 0;
+                this.failedTests = 0;
+                this.startTime = 0;
+                
+                this.setupTests();
+                this.setupEventListeners();
+            }
+
+            setupTests() {
+                // Unit tests
+                this.addTest('config', 'Unit', async () => {
+                    const config = new SystemConfig();
+                    await config.init();
+                    
+                    // Test basic configuration
+                    const llmConfig = config.getLLMConfig();
+                    if (!llmConfig.provider) throw new Error('No LLM provider configured');
+                    
+                    // Test configuration updates
+                    config.set('test.value', 'test');
+                    const testValue = config.get('test.value');
+                    if (testValue !== 'test') throw new Error('Configuration update failed');
+                    
+                    return 'Configuration system working correctly';
+                });
+
+                this.addTest('logger', 'Unit', async () => {
+                    const config = new SystemConfig();
+                    await config.init();
+                    const logger = new Logger(config);
+                    
+                    // Test logging
+                    logger.info('Test', 'Test message');
+                    logger.error('Test', 'Test error');
+                    
+                    // Test log retrieval
+                    const logs = logger.getLogs({ limit: 5 });
+                    if (logs.length === 0) throw new Error('No logs found');
+                    
+                    return `Logger working correctly - ${logs.length} logs captured`;
+                });
+
+                this.addTest('cache', 'Unit', async () => {
+                    const config = new SystemConfig();
+                    await config.init();
+                    const logger = new Logger(config);
+                    const cache = new CacheManager(config, logger);
+                    
+                    // Test cache operations
+                    cache.set('test-key', 'test-value', 'L1');
+                    const value = cache.get('test-key');
+                    if (value !== 'test-value') throw new Error('Cache retrieval failed');
+                    
+                    // Test cache stats
+                    const stats = cache.getStats();
+                    if (stats.hits.L1 === 0) throw new Error('Cache hit not recorded');
+                    
+                    return `Cache working correctly - Hit rate: ${Math.round(stats.hitRate * 100)}%`;
+                });
+
+                this.addTest('memory-store', 'Unit', async () => {
+                    const config = new SystemConfig();
+                    await config.init();
+                    const logger = new Logger(config);
+                    const cache = new CacheManager(config, logger);
+                    const memoryStore = new MemoryStore(config, logger, cache);
+                    await memoryStore.init();
+                    
+                    // Test memory operations
+                    await memoryStore.store('working', 'test-key', { test: true });
+                    const retrieved = memoryStore.retrieve('working', 'test-key');
+                    if (!retrieved || !retrieved.test) throw new Error('Memory storage/retrieval failed');
+                    
+                    // Test search
+                    const results = await memoryStore.search('working', 'test');
+                    if (results.length === 0) throw new Error('Memory search failed');
+                    
+                    return 'Memory store working correctly';
+                });
+
+                this.addTest('memory-ops', 'Unit', async () => {
+                    const config = new SystemConfig();
+                    await config.init();
+                    const logger = new Logger(config);
+                    const cache = new CacheManager(config, logger);
+                    const memoryStore = new MemoryStore(config, logger, cache);
+                    await memoryStore.init();
+                    const memoryOps = new MemoryOperations(memoryStore, logger);
+                    
+                    // Test working memory operation
+                    const workingContext = await memoryOps.workingMemoryOp({ taskId: 'test-task' });
+                    if (!workingContext.taskId) throw new Error('Working memory operation failed');
+                    
+                    return 'Memory operations working correctly';
+                });
+
+                this.addTest('context', 'Unit', async () => {
+                    const config = new SystemConfig();
+                    await config.init();
+                    const logger = new Logger(config);
+                    const cache = new CacheManager(config, logger);
+                    const memoryStore = new MemoryStore(config, logger, cache);
+                    await memoryStore.init();
+                    const memoryOps = new MemoryOperations(memoryStore, logger);
+                    const contextManager = new ContextManager(memoryOps, logger);
+                    
+                    // Test context building
+                    const context = await contextManager.buildContext(
+                        'agent-1', 'task-1', 'analysis', { query: 'test query' }
+                    );
+                    if (!context.agentId) throw new Error('Context building failed');
+                    
+                    return 'Context manager working correctly';
+                });
+
+                // Integration tests
+                this.addTest('llm', 'Integration', async () => {
+                    const config = new SystemConfig();
+                    await config.init();
+                    const logger = new Logger(config);
+                    const errorHandler = new ErrorHandler(logger, config);
+                    const llmInterface = new LLMInterface(config, logger, errorHandler);
+                    await llmInterface.init();
+                    
+                    // Test basic initialization
+                    if (!llmInterface.initialized) throw new Error('LLM interface not initialized');
+                    
+                    return 'LLM interface initialized correctly (OpenRouter key required for full test)';
+                });
+
+                this.addTest('openrouter', 'Integration', async () => {
+                    const config = new SystemConfig();
+                    await config.init();
+                    const logger = new Logger(config);
+                    const openRouter = new OpenRouterClient(config, logger);
+                    
+                    // Test model catalog
+                    const models = openRouter.getAvailableModels();
+                    if (models.length === 0) throw new Error('No models available');
+                    
+                    return `OpenRouter client working - ${models.length} models available`;
+                });
+
+                this.addTest('prompts', 'Integration', async () => {
+                    const config = new SystemConfig();
+                    await config.init();
+                    const logger = new Logger(config);
+                    const cache = new CacheManager(config, logger);
+                    const promptEngine = new PromptEngine(config, logger, cache);
+                    
+                    // Test template availability
+                    const templates = promptEngine.getAvailableTemplates();
+                    if (templates.length === 0) throw new Error('No templates available');
+                    
+                    return `Prompt engine working - ${templates.length} templates available`;
+                });
+
+                this.addTest('agent', 'Integration', async () => {
+                    const config = new SystemConfig();
+                    await config.init();
+                    const logger = new Logger(config);
+                    const agent = new AgentEngine(config, logger);
+                    await agent.init();
+                    
+                    // Test initialization
+                    if (!agent.isInitialized()) throw new Error('Agent not initialized');
+                    
+                    // Test memory test
+                    const memoryTest = await agent.testMemory();
+                    if (!memoryTest.success) throw new Error('Agent memory test failed');
+                    
+                    return 'Agent engine initialized and memory test passed';
+                });
+
+                this.addTest('business-apis', 'Integration', async () => {
+                    const logger = new Logger(new SystemConfig());
+                    const businessAPIs = new BusinessAPITools(logger);
+                    
+                    // Test application catalog
+                    const appResults = await businessAPIs.queryApplicationCatalog();
+                    if (!appResults.success) throw new Error('Application catalog query failed');
+                    
+                    // Test project history
+                    const historyResults = await businessAPIs.searchProjectHistory();
+                    if (!historyResults.success) throw new Error('Project history search failed');
+                    
+                    // Test estimation
+                    const estimate = await businessAPIs.generateEstimate('Add user authentication');
+                    if (!estimate.success) throw new Error('Estimation failed');
+                    
+                    return `Business APIs working - ${appResults.data.length} apps, ${historyResults.data.length} projects`;
+                });
+
+                // UI Component tests
+                this.addTest('chat', 'UI', async () => {
+                    const chatInterface = document.createElement('chat-interface');
+                    document.body.appendChild(chatInterface);
+                    
+                    // Wait for component to initialize
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Check if shadow DOM is created
+                    if (!chatInterface.shadowRoot) throw new Error('Chat interface not initialized');
+                    
+                    // Clean up
+                    document.body.removeChild(chatInterface);
+                    
+                    return 'Chat interface component working';
+                });
+
+                this.addTest('status', 'UI', async () => {
+                    const agentStatus = document.createElement('agent-status');
+                    document.body.appendChild(agentStatus);
+                    
+                    // Wait for component to initialize
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Check if shadow DOM is created
+                    if (!agentStatus.shadowRoot) throw new Error('Agent status not initialized');
+                    
+                    // Clean up
+                    document.body.removeChild(agentStatus);
+                    
+                    return 'Agent status component working';
+                });
+
+                this.addTest('memory-viewer', 'UI', async () => {
+                    const memoryViewer = document.createElement('memory-viewer');
+                    document.body.appendChild(memoryViewer);
+                    
+                    // Wait for component to initialize
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Check if shadow DOM is created
+                    if (!memoryViewer.shadowRoot) throw new Error('Memory viewer not initialized');
+                    
+                    // Clean up
+                    document.body.removeChild(memoryViewer);
+                    
+                    return 'Memory viewer component working';
+                });
+
+                this.addTest('execution-flow', 'UI', async () => {
+                    const executionFlow = document.createElement('execution-flow');
+                    document.body.appendChild(executionFlow);
+                    
+                    // Wait for component to initialize
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Check if shadow DOM is created
+                    if (!executionFlow.shadowRoot) throw new Error('Execution flow not initialized');
+                    
+                    // Test recording functionality
+                    executionFlow.recordEvent('test', 'Test Event', { test: true });
+                    const history = executionFlow.getExecutionHistory();
+                    if (history.length === 0) throw new Error('Event recording failed');
+                    
+                    // Clean up
+                    document.body.removeChild(executionFlow);
+                    
+                    return 'Execution flow component working with event recording';
+                });
+            }
+
+            addTest(name, category, testFn) {
+                this.tests.set(name, { category, testFn });
+                this.totalTests++;
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-all').addEventListener('click', () => {
+                    this.runAllTests();
+                });
+                
+                document.getElementById('run-unit').addEventListener('click', () => {
+                    this.runTestsByCategory('Unit');
+                });
+                
+                document.getElementById('run-integration').addEventListener('click', () => {
+                    this.runTestsByCategory('Integration');
+                });
+                
+                document.getElementById('clear-results').addEventListener('click', () => {
+                    this.clearResults();
+                });
+            }
+
+            async runAllTests() {
+                this.clearResults();
+                this.startTime = performance.now();
+                
+                for (const [name, test] of this.tests) {
+                    await this.runTest(name, test);
+                }
+                
+                this.updateSummary();
+            }
+
+            async runTestsByCategory(category) {
+                this.clearResults();
+                this.startTime = performance.now();
+                
+                for (const [name, test] of this.tests) {
+                    if (test.category === category) {
+                        await this.runTest(name, test);
+                    }
+                }
+                
+                this.updateSummary();
+            }
+
+            async runTest(name, test) {
+                const statusElement = document.querySelector(`[data-test="${name}"]`);
+                
+                try {
+                    // Update status to running
+                    statusElement.className = 'test-status running';
+                    statusElement.textContent = 'Running';
+                    
+                    this.log(`Running test: ${name}`);
+                    
+                    // Run the test
+                    const result = await test.testFn();
+                    
+                    // Test passed
+                    statusElement.className = 'test-status passed';
+                    statusElement.textContent = 'Passed';
+                    this.passedTests++;
+                    
+                    this.log(`✓ ${name}: ${result}`);
+                    
+                } catch (error) {
+                    // Test failed
+                    statusElement.className = 'test-status failed';
+                    statusElement.textContent = 'Failed';
+                    this.failedTests++;
+                    
+                    this.log(`✗ ${name}: ${error.message}`);
+                }
+            }
+
+            clearResults() {
+                this.passedTests = 0;
+                this.failedTests = 0;
+                this.output.textContent = 'Test output will appear here...';
+                
+                // Reset all test statuses
+                document.querySelectorAll('.test-status').forEach(status => {
+                    status.className = 'test-status pending';
+                    status.textContent = 'Pending';
+                });
+                
+                this.updateSummary();
+            }
+
+            updateSummary() {
+                const totalTime = this.startTime ? Math.round(performance.now() - this.startTime) : 0;
+                
+                document.getElementById('total-tests').textContent = this.totalTests;
+                document.getElementById('passed-tests').textContent = this.passedTests;
+                document.getElementById('failed-tests').textContent = this.failedTests;
+                document.getElementById('test-time').textContent = `${totalTime}ms`;
+            }
+
+            log(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                this.output.textContent += `[${timestamp}] ${message}\n`;
+                this.output.scrollTop = this.output.scrollHeight;
+            }
+        }
+
+        // Initialize test runner
+        const testRunner = new TestRunner();
+    </script>
+</body>
+</html>

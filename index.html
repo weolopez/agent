@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic AI System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar {
+            width: 350px;
+            background: #1a1a1a;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            background: #111;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .header p {
+            color: #999;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top: 3px solid #007acc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: #ff6b6b;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Agentic AI System</h1>
+        <p>Memory-driven autonomous task execution</p>
+    </div>
+    
+    <div class="app-container">        
+        <div class="main-content">
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>Initializing agent system...</p>
+            </div>
+            <chat-interface style="display: none;"></chat-interface>
+            <div class="error" id="error" style="display: none;"></div>
+        </div>
+        
+        <div class="sidebar">
+            <agent-status></agent-status>
+            <memory-viewer style="max-height: 300px;"></memory-viewer>
+            <execution-flow style="flex: 1;"></execution-flow>
+        </div>
+    </div>
+
+    <script type="module">
+        import { SystemConfig } from './src/core/config.js';
+        import { Logger } from './src/core/logger.js';
+        import { AgentEngine } from './src/agent/engine.js';
+        import './src/ui/components/chat-interface.js';
+        import './src/ui/components/agent-status.js';
+        import './src/ui/components/memory-viewer.js';
+        import './src/ui/components/execution-flow.js';
+
+        class App {
+            constructor() {
+                this.config = null;
+                this.logger = null;
+                this.agent = null;
+                this.initialized = false;
+            }
+
+            async init() {
+                try {
+                    // Initialize core systems
+                    this.config = new SystemConfig();
+                    await this.config.init();
+                    
+                    this.logger = new Logger(this.config);
+                    this.logger.info('App', 'Starting application initialization');
+
+                    // Initialize agent engine
+                    this.agent = new AgentEngine(this.config, this.logger);
+                    await this.agent.init();
+
+                    // Setup UI
+                    this.setupUI();
+                    
+                    this.initialized = true;
+                    this.logger.info('App', 'Application initialized successfully');
+                    
+                } catch (error) {
+                    this.handleInitError(error);
+                }
+            }
+
+            setupUI() {
+                const loading = document.getElementById('loading');
+                const chatInterface = document.querySelector('chat-interface');
+                const agentStatus = document.querySelector('agent-status');
+                const memoryViewer = document.querySelector('memory-viewer');
+                const executionFlow = document.querySelector('execution-flow');
+
+                // Hide loading, show chat interface
+                loading.style.display = 'none';
+                chatInterface.style.display = 'flex';
+
+                // Initialize components with agent reference
+                chatInterface.setAgent(this.agent);
+                agentStatus.setAgent(this.agent);
+                memoryViewer.setAgent(this.agent);
+                executionFlow.setAgent(this.agent);
+
+                // Setup event listeners
+                this.agent.on('stateChange', (state) => {
+                    agentStatus.updateState(state);
+                });
+
+                this.agent.on('memoryUpdate', (memoryData) => {
+                    memoryViewer.updateMemory(memoryData);
+                });
+            }
+
+            handleInitError(error) {
+                console.error('Failed to initialize application:', error);
+                
+                const loading = document.getElementById('loading');
+                const errorDiv = document.getElementById('error');
+                
+                loading.style.display = 'none';
+                errorDiv.style.display = 'block';
+                errorDiv.innerHTML = `
+                    <h3>Initialization Failed</h3>
+                    <p>${error.message}</p>
+                    <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Retry
+                    </button>
+                `;
+            }
+        }
+
+        // Start the application
+        const app = new App();
+        app.init();
+
+        // Make app globally available for debugging
+        window.app = app;
+    </script>
+</body>
+</html>
