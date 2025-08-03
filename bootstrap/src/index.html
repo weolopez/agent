@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent Programming System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .system-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+        .status-card h3 {
+            color: #007bff;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .status-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-success { background: #28a745; }
+        .status-warning { background: #ffc107; }
+        .status-error { background: #dc3545; }
+        .status-info { background: #17a2b8; }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .logs-area {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .logs-content {
+            background: #1e1e1e;
+            color: #00ff00;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .system-status {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Multi-Agent Programming System</h1>
+            <p>Professional autonomous development workflow with Claude AI</p>
+        </div>
+
+        <div class="system-status">
+            <div class="status-card">
+                <h3>Core Infrastructure</h3>
+                <div class="status-item">
+                    <div class="status-label">Configuration Manager</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="configStatus"></span>
+                        <span id="configStatusText">Initializing...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Logger System</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="loggerStatus"></span>
+                        <span id="loggerStatusText">Initializing...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Error Handler</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="errorHandlerStatus"></span>
+                        <span id="errorHandlerStatusText">Initializing...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Cache System</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="cacheStatus"></span>
+                        <span id="cacheStatusText">Initializing...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <h3>Memory System</h3>
+                <div class="status-item">
+                    <div class="status-label">Working Memory</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="workingMemoryStatus"></span>
+                        <span id="workingMemoryStatusText">Initializing...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Semantic Memory</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="semanticMemoryStatus"></span>
+                        <span id="semanticMemoryStatusText">Initializing...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Episodic Memory</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="episodicMemoryStatus"></span>
+                        <span id="episodicMemoryStatusText">Initializing...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Context Manager</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="contextManagerStatus"></span>
+                        <span id="contextManagerStatusText">Initializing...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <h3>LLM Integration</h3>
+                <div class="status-item">
+                    <div class="status-label">LLM Interface</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="llmInterfaceStatus"></span>
+                        <span id="llmInterfaceStatusText">Initializing...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Claude Provider</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="claudeProviderStatus"></span>
+                        <span id="claudeProviderStatusText">Initializing...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">OpenRouter Provider</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="openrouterProviderStatus"></span>
+                        <span id="openrouterProviderStatusText">Initializing...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <h3>Agent System</h3>
+                <div class="status-item">
+                    <div class="status-label">Agent Engine</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="agentEngineStatus"></span>
+                        <span id="agentEngineStatusText">Initializing...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Analyst Agent</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="analystAgentStatus"></span>
+                        <span id="analystAgentStatusText">Ready</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Planner Agent</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="plannerAgentStatus"></span>
+                        <span id="plannerAgentStatusText">Ready</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Developer Agent</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="developerAgentStatus"></span>
+                        <span id="developerAgentStatusText">Ready</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Tester Agent</div>
+                    <div class="status-value">
+                        <span class="status-indicator" id="testerAgentStatus"></span>
+                        <span id="testerAgentStatusText">Ready</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <h3>System Statistics</h3>
+                <div class="status-item">
+                    <div class="status-label">Memory Usage</div>
+                    <div class="status-value" id="memoryUsage">0 MB</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Cache Hit Ratio</div>
+                    <div class="status-value" id="cacheHitRatio">0%</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Active Operations</div>
+                    <div class="status-value" id="activeOperations">0</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Error Rate</div>
+                    <div class="status-value" id="errorRate">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="runSystemTests()">
+                🧪 Run System Tests
+            </button>
+            <button class="btn btn-success" onclick="initializeSystem()">
+                🚀 Initialize System
+            </button>
+            <button class="btn btn-info" onclick="testAgentWorkflow()">
+                🤖 Test Agent Workflow
+            </button>
+            <button class="btn btn-info" onclick="openTestRunner()">
+                📊 Open Test Runner
+            </button>
+            <button class="btn btn-warning" onclick="resetSystem()">
+                🔄 Reset System
+            </button>
+        </div>
+
+        <div class="logs-area">
+            <div class="logs-header">
+                <h3>System Logs</h3>
+                <div>
+                    <button class="btn btn-info" onclick="clearLogs()" style="padding: 8px 16px; font-size: 12px;">Clear Logs</button>
+                </div>
+            </div>
+            <div class="logs-content" id="systemLogs">
+                [INFO] Multi-Agent Programming System starting up...<br>
+                [INFO] Initializing core infrastructure components...<br>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import core components
+        import { configManager } from './core/config.js';
+        import { logger } from './core/logger.js';
+        import { errorHandler } from './core/error-handler.js';
+        import { cacheSystem } from './core/cache.js';
+        
+        // Import memory components
+        import MemoryStore from './memory/memory-store.js';
+        import { workingMemory } from './memory/working-memory.js';
+        import { semanticMemory } from './memory/semantic-memory.js';
+        import { episodicMemory } from './memory/episodic-memory.js';
+        import { proceduralMemory } from './memory/procedural-memory.js';
+        import { contextManager } from './memory/context-manager.js';
+        
+        // Import LLM components
+        import { llmInterface } from './llm/llm-interface.js';
+        import ClaudeProvider from './llm/claude-provider.js';
+        import OpenRouterProvider from './llm/openrouter-provider.js';
+        
+        // Import agent components
+        import { agentEngine } from './agents/agent-engine.js';
+        import { analystAgentDefinition } from './agents/analyst-agent.js';
+        import { plannerAgentDefinition } from './agents/planner-agent.js';
+        import { developerAgentDefinition } from './agents/developer-agent.js';
+        import { testerAgentDefinition } from './agents/tester-agent.js';
+
+        // Global system state
+        let systemInitialized = false;
+        let components = {
+            // Core infrastructure
+            config: null,
+            logger: null,
+            errorHandler: null,
+            cache: null,
+            
+            // Memory system
+            workingMemory: null,
+            semanticMemory: null,
+            episodicMemory: null,
+            proceduralMemory: null,
+            contextManager: null,
+            
+            // LLM integration
+            llmInterface: null,
+            claudeProvider: null,
+            openrouterProvider: null,
+            
+            // Agent system
+            agentEngine: null,
+            agents: {
+                analyst: null,
+                planner: null,
+                developer: null,
+                tester: null
+            }
+        };
+
+        // Initialize system on load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initializeComponents();
+            updateSystemStatus();
+            startStatusMonitoring();
+        });
+
+        /**
+         * Initialize all system components
+         */
+        async function initializeComponents() {
+            try {
+                logToSystem('[INFO] Starting comprehensive system initialization...');
+
+                // Phase 1: Core Infrastructure
+                await initializeCoreInfrastructure();
+                
+                // Phase 2: Memory System
+                await initializeMemorySystem();
+                
+                // Phase 3: LLM Integration
+                await initializeLLMSystem();
+                
+                // Phase 4: Agent System
+                await initializeAgentSystem();
+
+                logToSystem('[INFO] Complete system initialization finished');
+                systemInitialized = true;
+
+            } catch (error) {
+                logToSystem(`[CRITICAL] System initialization failed: ${error.message}`);
+                systemInitialized = false;
+            }
+        }
+
+        /**
+         * Initialize core infrastructure components
+         */
+        async function initializeCoreInfrastructure() {
+            logToSystem('[INFO] Initializing core infrastructure...');
+
+            // Initialize configuration manager
+            try {
+                components.config = configManager;
+                updateComponentStatus('config', 'success', 'Ready');
+                logToSystem('[SUCCESS] Configuration Manager initialized');
+            } catch (error) {
+                updateComponentStatus('config', 'error', 'Failed');
+                logToSystem(`[ERROR] Configuration Manager failed: ${error.message}`);
+            }
+
+            // Initialize logger
+            try {
+                components.logger = logger;
+                updateComponentStatus('logger', 'success', 'Ready');
+                logToSystem('[SUCCESS] Logger System initialized');
+            } catch (error) {
+                updateComponentStatus('logger', 'error', 'Failed');
+                logToSystem(`[ERROR] Logger System failed: ${error.message}`);
+            }
+
+            // Initialize error handler
+            try {
+                components.errorHandler = errorHandler;
+                updateComponentStatus('errorHandler', 'success', 'Ready');
+                logToSystem('[SUCCESS] Error Handler initialized');
+            } catch (error) {
+                updateComponentStatus('errorHandler', 'error', 'Failed');
+                logToSystem(`[ERROR] Error Handler failed: ${error.message}`);
+            }
+
+            // Initialize cache system
+            try {
+                components.cache = cacheSystem;
+                updateComponentStatus('cache', 'success', 'Ready');
+                logToSystem('[SUCCESS] Cache System initialized');
+            } catch (error) {
+                updateComponentStatus('cache', 'error', 'Failed');
+                logToSystem(`[ERROR] Cache System failed: ${error.message}`);
+            }
+
+            logToSystem('[INFO] Core infrastructure initialization complete');
+        }
+
+        /**
+         * Initialize memory system components
+         */
+        async function initializeMemorySystem() {
+            logToSystem('[INFO] Initializing memory system...');
+
+            // Initialize working memory
+            try {
+                components.workingMemory = workingMemory;
+                updateComponentStatus('workingMemory', 'success', 'Ready');
+                logToSystem('[SUCCESS] Working Memory initialized');
+            } catch (error) {
+                updateComponentStatus('workingMemory', 'error', 'Failed');
+                logToSystem(`[ERROR] Working Memory failed: ${error.message}`);
+            }
+
+            // Initialize semantic memory
+            try {
+                components.semanticMemory = semanticMemory;
+                updateComponentStatus('semanticMemory', 'success', 'Ready');
+                logToSystem('[SUCCESS] Semantic Memory initialized');
+            } catch (error) {
+                updateComponentStatus('semanticMemory', 'error', 'Failed');
+                logToSystem(`[ERROR] Semantic Memory failed: ${error.message}`);
+            }
+
+            // Initialize episodic memory
+            try {
+                components.episodicMemory = episodicMemory;
+                updateComponentStatus('episodicMemory', 'success', 'Ready');
+                logToSystem('[SUCCESS] Episodic Memory initialized');
+            } catch (error) {
+                updateComponentStatus('episodicMemory', 'error', 'Failed');
+                logToSystem(`[ERROR] Episodic Memory failed: ${error.message}`);
+            }
+
+            // Initialize context manager
+            try {
+                components.contextManager = contextManager;
+                updateComponentStatus('contextManager', 'success', 'Ready');
+                logToSystem('[SUCCESS] Context Manager initialized');
+            } catch (error) {
+                updateComponentStatus('contextManager', 'error', 'Failed');
+                logToSystem(`[ERROR] Context Manager failed: ${error.message}`);
+            }
+
+            logToSystem('[INFO] Memory system initialization complete');
+        }
+
+        /**
+         * Initialize LLM integration components
+         */
+        async function initializeLLMSystem() {
+            logToSystem('[INFO] Initializing LLM integration system...');
+
+            // Initialize LLM interface
+            try {
+                components.llmInterface = llmInterface;
+                updateComponentStatus('llmInterface', 'success', 'Ready');
+                logToSystem('[SUCCESS] LLM Interface initialized');
+            } catch (error) {
+                updateComponentStatus('llmInterface', 'error', 'Failed');
+                logToSystem(`[ERROR] LLM Interface failed: ${error.message}`);
+            }
+
+            // Initialize Claude provider
+            try {
+                components.claudeProvider = new ClaudeProvider();
+                await llmInterface.registerProvider(components.claudeProvider, { 
+                    primary: true, 
+                    fallback: false 
+                });
+                updateComponentStatus('claudeProvider', 'success', 'Ready');
+                logToSystem('[SUCCESS] Claude Provider initialized');
+            } catch (error) {
+                updateComponentStatus('claudeProvider', 'error', 'Failed');
+                logToSystem(`[ERROR] Claude Provider failed: ${error.message}`);
+            }
+
+            // Initialize OpenRouter provider
+            try {
+                components.openrouterProvider = new OpenRouterProvider();
+                await llmInterface.registerProvider(components.openrouterProvider, { 
+                    primary: false, 
+                    fallback: true, 
+                    priority: 1 
+                });
+                updateComponentStatus('openrouterProvider', 'success', 'Ready');
+                logToSystem('[SUCCESS] OpenRouter Provider initialized');
+            } catch (error) {
+                updateComponentStatus('openrouterProvider', 'error', 'Failed');
+                logToSystem(`[ERROR] OpenRouter Provider failed: ${error.message}`);
+            }
+
+            logToSystem('[INFO] LLM integration system initialization complete');
+        }
+
+        /**
+         * Initialize agent system components
+         */
+        async function initializeAgentSystem() {
+            logToSystem('[INFO] Initializing agent system...');
+
+            // Initialize agent engine
+            try {
+                components.agentEngine = agentEngine;
+                updateComponentStatus('agentEngine', 'success', 'Ready');
+                logToSystem('[SUCCESS] Agent Engine initialized');
+            } catch (error) {
+                updateComponentStatus('agentEngine', 'error', 'Failed');
+                logToSystem(`[ERROR] Agent Engine failed: ${error.message}`);
+            }
+
+            // Initialize agent definitions
+            try {
+                components.agents.analyst = analystAgentDefinition;
+                components.agents.planner = plannerAgentDefinition;
+                components.agents.developer = developerAgentDefinition;
+                components.agents.tester = testerAgentDefinition;
+
+                updateComponentStatus('analystAgent', 'success', 'Ready');
+                updateComponentStatus('plannerAgent', 'success', 'Ready');
+                updateComponentStatus('developerAgent', 'success', 'Ready');
+                updateComponentStatus('testerAgent', 'success', 'Ready');
+                
+                logToSystem('[SUCCESS] All agent definitions loaded');
+            } catch (error) {
+                updateComponentStatus('analystAgent', 'error', 'Failed');
+                updateComponentStatus('plannerAgent', 'error', 'Failed');
+                updateComponentStatus('developerAgent', 'error', 'Failed');
+                updateComponentStatus('testerAgent', 'error', 'Failed');
+                logToSystem(`[ERROR] Agent definitions failed: ${error.message}`);
+            }
+
+            logToSystem('[INFO] Agent system initialization complete');
+        }
+
+        /**
+         * Update component status in UI
+         */
+        function updateComponentStatus(component, status, text) {
+            const statusElement = document.getElementById(`${component}Status`);
+            const textElement = document.getElementById(`${component}StatusText`);
+            
+            if (statusElement) {
+                statusElement.className = `status-indicator status-${status}`;
+            }
+            
+            if (textElement) {
+                textElement.textContent = text;
+            }
+        }
+
+        /**
+         * Update system status display
+         */
+        async function updateSystemStatus() {
+            try {
+                // Update memory usage
+                if (performance.memory) {
+                    const memoryMB = Math.round(performance.memory.usedJSHeapSize / (1024 * 1024));
+                    document.getElementById('memoryUsage').textContent = `${memoryMB} MB`;
+                }
+
+                // Update cache hit ratio
+                if (components.cache) {
+                    const hitRatio = await components.cache.getHitRatio();
+                    document.getElementById('cacheHitRatio').textContent = `${Math.round(hitRatio * 100)}%`;
+                }
+
+                // Update error rate
+                if (components.errorHandler) {
+                    const stats = await components.errorHandler.getErrorStats();
+                    document.getElementById('errorRate').textContent = `${Math.round((1 - stats.recoverySuccessRate) * 100)}%`;
+                }
+
+            } catch (error) {
+                console.error('Error updating system status:', error);
+            }
+        }
+
+        /**
+         * Start monitoring system status
+         */
+        function startStatusMonitoring() {
+            setInterval(updateSystemStatus, 5000); // Update every 5 seconds
+        }
+
+        /**
+         * Log message to system logs
+         */
+        function logToSystem(message) {
+            const logsElement = document.getElementById('systemLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            logsElement.innerHTML += `[${timestamp}] ${message}<br>`;
+            logsElement.scrollTop = logsElement.scrollHeight;
+        }
+
+        /**
+         * Run comprehensive system tests
+         */
+        window.runSystemTests = async function() {
+            logToSystem('[INFO] Starting comprehensive system tests...');
+            
+            if (!systemInitialized) {
+                logToSystem('[ERROR] System not initialized. Please initialize first.');
+                return;
+            }
+
+            let testsRun = 0;
+            let testsPassed = 0;
+
+            // Test Configuration Manager
+            try {
+                await components.config.set('test.key', 'test.value');
+                const value = components.config.get('test.key');
+                if (value === 'test.value') {
+                    testsPassed++;
+                    logToSystem('[PASS] Configuration Manager - Set/Get test');
+                } else {
+                    logToSystem('[FAIL] Configuration Manager - Set/Get test');
+                }
+                testsRun++;
+            } catch (error) {
+                logToSystem(`[FAIL] Configuration Manager test: ${error.message}`);
+                testsRun++;
+            }
+
+            // Test Logger System
+            try {
+                await components.logger.info('Test log message', { test: true });
+                testsPassed++;
+                logToSystem('[PASS] Logger System - Log message test');
+                testsRun++;
+            } catch (error) {
+                logToSystem(`[FAIL] Logger System test: ${error.message}`);
+                testsRun++;
+            }
+
+            // Test Error Handler
+            try {
+                const testError = new Error('Test error');
+                const result = await components.errorHandler.handleError(testError, {
+                    operation: 'test',
+                    component: 'SystemTests'
+                });
+                if (result.handled) {
+                    testsPassed++;
+                    logToSystem('[PASS] Error Handler - Handle error test');
+                } else {
+                    logToSystem('[FAIL] Error Handler - Handle error test');
+                }
+                testsRun++;
+            } catch (error) {
+                logToSystem(`[FAIL] Error Handler test: ${error.message}`);
+                testsRun++;
+            }
+
+            // Test Cache System
+            try {
+                await components.cache.set('test.cache.key', { test: 'data' });
+                const cached = await components.cache.get('test.cache.key');
+                if (cached.hit && cached.value.test === 'data') {
+                    testsPassed++;
+                    logToSystem('[PASS] Cache System - Set/Get test');
+                } else {
+                    logToSystem('[FAIL] Cache System - Set/Get test');
+                }
+                testsRun++;
+            } catch (error) {
+                logToSystem(`[FAIL] Cache System test: ${error.message}`);
+                testsRun++;
+            }
+
+            // Test Memory Store Base
+            try {
+                // Create a simple memory store instance for testing
+                const testMemoryStore = new (class extends MemoryStore {
+                    constructor() {
+                        super('test');
+                    }
+                })();
+                
+                await testMemoryStore.store('test.key', { data: 'test' });
+                const retrieved = await testMemoryStore.retrieve('test.key');
+                
+                if (retrieved && retrieved.data.data === 'test') {
+                    testsPassed++;
+                    logToSystem('[PASS] Memory Store - Store/Retrieve test');
+                } else {
+                    logToSystem('[FAIL] Memory Store - Store/Retrieve test');
+                }
+                testsRun++;
+            } catch (error) {
+                logToSystem(`[FAIL] Memory Store test: ${error.message}`);
+                testsRun++;
+            }
+
+            const passRate = Math.round((testsPassed / testsRun) * 100);
+            logToSystem(`[INFO] Tests completed: ${testsPassed}/${testsRun} passed (${passRate}%)`);
+            
+            if (passRate >= 80) {
+                logToSystem('[SUCCESS] System tests passed! 🎉');
+            } else {
+                logToSystem('[WARNING] Some system tests failed. Check logs for details.');
+            }
+        };
+
+        /**
+         * Initialize the complete system
+         */
+        window.initializeSystem = async function() {
+            if (systemInitialized) {
+                logToSystem('[INFO] System already initialized');
+                return;
+            }
+
+            logToSystem('[INFO] Starting full system initialization...');
+            await initializeComponents();
+            
+            if (systemInitialized) {
+                logToSystem('[SUCCESS] System initialization complete! 🚀');
+            } else {
+                logToSystem('[ERROR] System initialization failed');
+            }
+        };
+
+        /**
+         * Open test runner in new window
+         */
+        window.openTestRunner = function() {
+            window.open('./test/runner.html', '_blank');
+        };
+
+        /**
+         * Reset the entire system
+         */
+        window.resetSystem = async function() {
+            if (confirm('Are you sure you want to reset the entire system? This will clear all data.')) {
+                logToSystem('[INFO] Resetting system...');
+                
+                try {
+                    if (components.config) {
+                        await components.config.reset();
+                        logToSystem('[INFO] Configuration reset');
+                    }
+                    
+                    if (components.cache) {
+                        await components.cache.clear();
+                        logToSystem('[INFO] Cache cleared');
+                    }
+                    
+                    // Reset component statuses
+                    ['config', 'logger', 'errorHandler', 'cache'].forEach(component => {
+                        updateComponentStatus(component, 'warning', 'Resetting...');
+                    });
+                    
+                    setTimeout(async () => {
+                        await initializeComponents();
+                        logToSystem('[SUCCESS] System reset complete! 🔄');
+                    }, 1000);
+                    
+                } catch (error) {
+                    logToSystem(`[ERROR] System reset failed: ${error.message}`);
+                }
+            }
+        };
+
+        /**
+         * Test agent workflow with sample requirements
+         */
+        window.testAgentWorkflow = async function() {
+            if (!systemInitialized) {
+                logToSystem('[ERROR] System not initialized. Please initialize first.');
+                return;
+            }
+
+            logToSystem('[INFO] Starting agent workflow test...');
+            
+            try {
+                // Sample requirement for testing
+                const testRequirement = {
+                    description: "Create a simple task management web application that allows users to add, edit, delete, and mark tasks as complete. The application should persist data locally and have a clean, responsive interface.",
+                    type: "web_application",
+                    priority: "medium"
+                };
+
+                // Test analyst agent
+                logToSystem('[INFO] Testing Analyst Agent...');
+                const analysisResult = await components.agentEngine.executeAgent(
+                    components.agents.analyst,
+                    testRequirement,
+                    { timeout: 30000 }
+                );
+                
+                if (analysisResult.success) {
+                    logToSystem('[SUCCESS] Analyst Agent completed successfully');
+                } else {
+                    logToSystem(`[ERROR] Analyst Agent failed: ${analysisResult.error}`);
+                    return;
+                }
+
+                // Test planner agent with analysis results
+                logToSystem('[INFO] Testing Planner Agent...');
+                const planningResult = await components.agentEngine.executeAgent(
+                    components.agents.planner,
+                    {
+                        ...testRequirement,
+                        previousResults: [analysisResult]
+                    },
+                    { timeout: 45000 }
+                );
+                
+                if (planningResult.success) {
+                    logToSystem('[SUCCESS] Planner Agent completed successfully');
+                } else {
+                    logToSystem(`[ERROR] Planner Agent failed: ${planningResult.error}`);
+                    return;
+                }
+
+                // Test workflow execution with multiple agents
+                logToSystem('[INFO] Testing complete workflow...');
+                const workflowResult = await components.agentEngine.executeWorkflow([
+                    { agentDefinition: components.agents.analyst },
+                    { agentDefinition: components.agents.planner }
+                ], testRequirement, { timeout: 60000 });
+
+                if (workflowResult.success) {
+                    logToSystem('[SUCCESS] Multi-agent workflow completed successfully');
+                    logToSystem(`[INFO] Workflow executed ${workflowResult.results.length} steps`);
+                } else {
+                    logToSystem(`[ERROR] Workflow failed: ${workflowResult.error}`);
+                }
+
+                // Display system statistics
+                const engineStats = components.agentEngine.getStats();
+                logToSystem(`[INFO] Agent Engine Stats: ${engineStats.totalExecutions} total executions, ${Math.round(engineStats.successRate * 100)}% success rate`);
+
+                const llmStats = components.llmInterface.getUsageStats();
+                logToSystem(`[INFO] LLM Usage: ${llmStats.totalRequests} requests, ${llmStats.totalTokens} tokens`);
+
+                logToSystem('[SUCCESS] Agent workflow test completed! 🎉');
+
+            } catch (error) {
+                logToSystem(`[ERROR] Agent workflow test failed: ${error.message}`);
+            }
+        };
+
+        /**
+         * Clear system logs
+         */
+        window.clearLogs = function() {
+            document.getElementById('systemLogs').innerHTML = '';
+            logToSystem('[INFO] System logs cleared');
+        };
+    </script>
+</body>
+</html>
